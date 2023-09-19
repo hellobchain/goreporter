@@ -184,7 +184,7 @@ func (r *Reporter) toText() (err error) {
 		r.Issues,
 	)
 	for _, metric := range r.Metrics {
-		if metric.Name == "DependGraph" || 0 == len(metric.Summaries) {
+		if metric.Name == "DependGraph" || len(metric.Summaries) == 0 {
 			continue
 		}
 		color.Cyan(metricsHeaderTpl, metric.Name, metric.Description)
@@ -223,12 +223,13 @@ func (r *Reporter) toHtml() (err error) {
 	htmlData.converterCodeCount(*r)
 	htmlData.converterDependGraph(*r)
 
-	noTestPackages := make([]string, 0)
+	//noTestPackages := make([]string, 0)
 	importPackages := r.Metrics["ImportPackagesTips"].Summaries
 	unitTestPackages := r.Metrics["UnitTestTips"].Summaries
 	for packageName := range importPackages {
 		if _, ok := unitTestPackages[packageName]; !ok {
-			noTestPackages = append(noTestPackages, packageName)
+			//noTestPackages = append(noTestPackages, packageName)
+			logger.Infof("noTestPackages:%v", packageName)
 		}
 	}
 	htmlData.IssuesNum = issues

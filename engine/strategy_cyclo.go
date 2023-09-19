@@ -41,7 +41,7 @@ func (s *StrategyCyclo) Compute(parameters StrategyParameter) (summaries *Summar
 
 		cyclos, avg := cyclo.Cyclo(pkgPath, parameters.ExceptPackages)
 		average, _ := strconv.ParseFloat(avg, 64)
-		if math.IsNaN(average) == false {
+		if !math.IsNaN(average) {
 			s.sumAverageCyclo = s.sumAverageCyclo + average
 		} else {
 			average = 0
