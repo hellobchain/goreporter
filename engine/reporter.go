@@ -107,9 +107,9 @@ func (r *Reporter) Report() error {
 	for _, linter := range r.Linters {
 		r.compute(linter, params)
 	}
-
-	r.TimeStamp = time.Now().Format("2006-01-02-15-04-05")
-
+	if r.TimeStamp == "" {
+		r.TimeStamp = time.Now().Format("2006-01-02-15-04-05")
+	}
 	// ensure peocessbar quit.
 	r.Sync.LintersProcessChans <- 100
 	logger.Info("finished code quality assessment...")
@@ -246,7 +246,7 @@ func (r *Reporter) GetFinalScore() (score float64) {
 	return
 }
 
-func NewReporter(projectPath, reportPath, reportFormat, htmlTemplate string) *Reporter {
+func NewReporter(projectPath, reportPath, reportFormat, htmlTemplate string, name string) *Reporter {
 	return &Reporter{
 		StartTime:    time.Now(),
 		Metrics:      make(map[string]Metric, 0),
@@ -254,6 +254,7 @@ func NewReporter(projectPath, reportPath, reportFormat, htmlTemplate string) *Re
 		ReportPath:   reportPath,
 		ReportFormat: reportFormat,
 		HtmlTemplate: htmlTemplate,
+		TimeStamp:    name,
 	}
 }
 

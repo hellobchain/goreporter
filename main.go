@@ -20,7 +20,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -30,7 +29,10 @@ import (
 	"github.com/facebookgo/inject"
 	"github.com/hellobchain/goreporter/engine"
 	"github.com/hellobchain/goreporter/engine/processbar"
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // Received parameters, you can control some features using:
 //
@@ -53,6 +55,7 @@ var (
 	exceptPackages = flag.String("e", "", "except packages.")
 	templatePath   = flag.String("t", "", "report html template path.")
 	reportFormat   = flag.String("f", "", "project report format(text/json/html).")
+	name           = flag.String("n", "", "project name.")
 	coresOfCPU     = flag.Int("c", -1, "cores of CPU.")
 )
 
@@ -62,46 +65,46 @@ func main() {
 		runtime.GOMAXPROCS(*coresOfCPU)
 	}
 	if *version {
-		fmt.Printf("GoReporter %s\r\n", VERSION)
+		logger.Infof("GoReporter %s\r\n", VERSION)
 		os.Exit(0)
 	}
 
 	if *projectPath == "" {
-		log.Fatal("The project path is not specified")
+		logger.Fatal("The project path is not specified")
 	} else {
 		_, err := os.Stat(*projectPath)
 		if err != nil {
-			log.Fatal("project path is invalid")
+			logger.Fatal("project path is invalid")
 		}
 	}
 
 	var templateHtml string
 	if *templatePath == "" {
 		templateHtml = engine.DefaultTpl
-		log.Println("The template path is not specified,and will use the default template")
+		logger.Info("The template path is not specified,and will use the default template")
 	} else {
 		if !strings.HasSuffix(*templatePath, ".html") {
-			log.Println("The template file is not a html template")
+			logger.Info("The template file is not a html template")
 		}
 		fileData, err := ioutil.ReadFile(*templatePath)
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		} else {
 			templateHtml = string(fileData)
 		}
 	}
 
 	if *reportPath == "" {
-		log.Println("The report path is not specified, and the current path is used by default")
+		logger.Info("The report path is not specified, and the current path is used by default")
 	} else {
 		_, err := os.Stat(*reportPath)
 		if err != nil {
-			log.Fatal("report path is invalid:", err)
+			logger.Fatal("report path is invalid:", err)
 		}
 	}
 
 	if *exceptPackages == "" {
-		log.Println("There are no packages that are excepted, review all items of the package")
+		logger.Info("There are no packages that are excepted, review all items of the package")
 	}
 
 	synchronizer := &engine.Synchronizer{
@@ -111,7 +114,7 @@ func main() {
 	syncRW := &sync.RWMutex{}
 	waitGW := &engine.WaitGroupWrapper{}
 
-	reporter := engine.NewReporter(*projectPath, *reportPath, *reportFormat, templateHtml)
+	reporter := engine.NewReporter(*projectPath, *reportPath, *reportFormat, templateHtml, *name)
 	strategyCountCode := &engine.StrategyCountCode{}
 	strategyCyclo := &engine.StrategyCyclo{}
 	strategyDeadCode := &engine.StrategyDeadCode{}
@@ -145,7 +148,7 @@ func main() {
 		syncRW,
 		waitGW,
 	); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	reporter.AddLinters(strategyCountCode, strategyCyclo, strategyDeadCode, strategyDependGraph,
@@ -155,12 +158,12 @@ func main() {
 	go processbar.LinterProcessBar(synchronizer.LintersProcessChans, synchronizer.LintersFinishedSignal)
 
 	if err := reporter.Report(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	if err := reporter.Render(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
-	log.Println(fmt.Sprintf("GoReporter Finished,time consuming %vs", time.Since(reporter.StartTime).Seconds()))
+	logger.Infof(fmt.Sprintf("GoReporter Finished,time consuming %vs", time.Since(reporter.StartTime).Seconds()))
 }

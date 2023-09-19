@@ -24,12 +24,15 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 const usageDoc = `Calculate cyclomatic complexities of Go functions.
 usage:
@@ -151,7 +154,7 @@ func writeStats(w io.Writer, sortedStats []stat) int {
 }
 
 func showAverage(stats []stat) {
-	log.Printf("Average: %.3g\n", average(stats))
+	logger.Infof("Average: %.3g\n", average(stats))
 }
 
 func getAverage(stats []stat) string {

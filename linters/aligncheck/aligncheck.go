@@ -16,13 +16,16 @@ package aligncheck
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"sort"
 	"unsafe"
 
 	"go/types"
+
+	"github.com/hellobchain/wswlog/wlogging"
 	"golang.org/x/tools/go/loader"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 type LinterAligncheck struct {
 }
@@ -39,15 +42,15 @@ func (l *LinterAligncheck) ComputeMetric(projectPath string) []string {
 	}
 	rest, err := loadcfg.FromArgs(importPaths, false)
 	if err != nil {
-		log.Fatalf("could not parse arguments: %s", err)
+		logger.Fatalf("could not parse arguments: %s", err)
 	}
 	if len(rest) > 0 {
-		log.Fatalf("unhandled extra arguments: %v", rest)
+		logger.Fatalf("unhandled extra arguments: %v", rest)
 	}
 
 	program, err := loadcfg.Load()
 	if err != nil {
-		log.Fatalf("could not type check: %s", err)
+		logger.Fatalf("could not type check: %s", err)
 	}
 
 	var lines []string

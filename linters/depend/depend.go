@@ -249,7 +249,7 @@ func hasPrefixes(s string, prefixes []string) bool {
 }
 
 func hasPackage(pkgpath string) bool {
-	for k, _ := range ignored {
+	for k := range ignored {
 		if strings.Contains(pkgpath, k) {
 			return true
 		}
@@ -259,14 +259,6 @@ func hasPackage(pkgpath string) bool {
 
 func isIgnored(pkg *build.Package) bool {
 	return ignored[pkg.ImportPath] || (pkg.Goroot && ignoreStdlib) || hasPrefixes(pkg.ImportPath, ignoredPrefixes) || hasPackage(pkg.ImportPath)
-}
-
-func debug(args ...interface{}) {
-	fmt.Fprintln(os.Stderr, args...)
-}
-
-func debugf(s string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, s, args...)
 }
 
 func getVendorlist(path string) []string {

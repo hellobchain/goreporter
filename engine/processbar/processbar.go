@@ -14,15 +14,17 @@
 package processbar
 
 import (
-	"log"
 	"os"
 	"runtime"
 	"sync/atomic"
 	"time"
 
+	"github.com/hellobchain/wswlog/wlogging"
 	"github.com/reconquest/barely"
 	"github.com/reconquest/loreley"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // LinterProcessBar provides a function to display the current progress of
 // generating your project, you can predict the time to generate your report.
@@ -37,7 +39,7 @@ func LinterProcessBar(lintersProcessChans chan int64, lintersFinishedSignal chan
 		nil,
 	)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	// Initialize some of the parameters, set some of the properties of our progress bar.
 	var (
@@ -70,7 +72,7 @@ func LinterProcessBar(lintersProcessChans chan int64, lintersFinishedSignal chan
 					break PROCESSNORENDER
 				}
 			case signal := <-lintersFinishedSignal:
-				log.Println(signal)
+				logger.Info(signal)
 			}
 		}
 	} else {
@@ -87,7 +89,7 @@ func LinterProcessBar(lintersProcessChans chan int64, lintersFinishedSignal chan
 					break PROCESSRENDER
 				}
 			case signal := <-lintersFinishedSignal:
-				log.Println(signal)
+				logger.Info(signal)
 				bar.Render(os.Stderr)
 			case <-time.After(1 * time.Second):
 				bar.Render(os.Stderr)

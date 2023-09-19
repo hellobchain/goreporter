@@ -3,10 +3,13 @@ package suffixtree
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"math"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 const infinity = math.MaxInt32
 
@@ -120,7 +123,7 @@ func (t *STree) canonize(s *state, start, end Pos) (*state, Pos) {
 		if start <= end {
 			tr = s.findTran(t.data[start])
 			if tr == nil {
-				log.Fatal(fmt.Sprintf("there should be some transition for '%d' at %d",
+				logger.Fatal(fmt.Sprintf("there should be some transition for '%d' at %d",
 					t.data[start].Val(), start))
 			}
 		}
@@ -131,14 +134,14 @@ func (t *STree) canonize(s *state, start, end Pos) (*state, Pos) {
 		s = tr.state
 	}
 	if s == nil {
-		log.Fatal("there should always be some suffix link resolution")
+		logger.Fatal("there should always be some suffix link resolution")
 	}
 	return s, start
 }
 
 func (t *STree) At(p Pos) Token {
 	if p < 0 || p >= Pos(len(t.data)) {
-		log.Fatal("position out of bounds")
+		logger.Fatal("position out of bounds")
 	}
 	return t.data[p]
 }

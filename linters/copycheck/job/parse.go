@@ -1,11 +1,12 @@
 package job
 
 import (
-	"log"
-
 	"github.com/hellobchain/goreporter/linters/copycheck/syntax"
 	"github.com/hellobchain/goreporter/linters/copycheck/syntax/golang"
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 func Parse(fchan chan string) chan []*syntax.Node {
 
@@ -15,7 +16,7 @@ func Parse(fchan chan string) chan []*syntax.Node {
 		for file := range fchan {
 			ast, err := golang.Parse(file)
 			if err != nil {
-				log.Println(err)
+				logger.Error(err)
 				continue
 			}
 			achan <- ast

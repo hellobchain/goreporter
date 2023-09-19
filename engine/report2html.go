@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,10 +33,6 @@ import (
 )
 
 var logger = wlogging.MustGetLoggerWithoutName()
-
-var (
-	issues int
-)
 
 // UnitTest is a struct that contains some features in a report of html.
 //         GoReporter HTML Report Features
@@ -796,7 +791,7 @@ func SaveAsHtml(htmlData HtmlData, projectPath, savePath, timestamp, tpl string)
 // displayReport function can be open system default browser automatic.
 func displayReport(filePath string) {
 	fileURL := fmt.Sprintf("file://%v", filePath)
-	log.Println("To display report", fileURL, "in browser")
+	logger.Info("To display report", fileURL, "in browser")
 	var err error
 	switch runtime.GOOS {
 	case "linux":
@@ -807,7 +802,7 @@ func displayReport(filePath string) {
 		r := strings.NewReplacer("&", "^&")
 		err = callSystemCmd("cmd", "/c", "start", r.Replace(fileURL))
 	default:
-		err = fmt.Errorf("Unsupported platform,please view report file.")
+		err = fmt.Errorf("%s", "unsupported platform,please view report file.")
 	}
 	if err != nil {
 		logger.Error(err)
