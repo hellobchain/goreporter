@@ -13,14 +13,17 @@ It has been updated to follow upstream changes in a few ways.
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 var buildContext = build.Default
 
@@ -183,7 +186,7 @@ func matchPackages(pattern string) []string {
 		_, err = buildContext.ImportDir(path, 0)
 		if err != nil {
 			if _, noGo := err.(*build.NoGoError); !noGo {
-				log.Print(err)
+				logger.Error(err)
 			}
 			return nil
 		}
@@ -299,7 +302,7 @@ func matchPackagesInFS(pattern string) []string {
 		}
 		if _, err = build.ImportDir(path, 0); err != nil {
 			if _, noGo := err.(*build.NoGoError); !noGo {
-				log.Print(err)
+				logger.Error(err)
 			}
 			return nil
 		}

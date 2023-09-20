@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build go1.5
 // +build go1.5
 
 package ssa
@@ -19,7 +20,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/types"
-	"log"
 	"os"
 	"strings"
 	"text/template"
@@ -113,7 +113,7 @@ func isTest(name, prefix string) bool {
 // The package pkg must belong to the program prog.
 func (prog *Program) CreateTestMainPackage(pkg *Package) *Package {
 	if pkg.Prog != prog {
-		log.Fatal("Package does not belong to Program")
+		logger.Fatal("Package does not belong to Program")
 	}
 
 	// Template data
@@ -152,7 +152,7 @@ func (prog *Program) CreateTestMainPackage(pkg *Package) *Package {
 	}
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
-		log.Fatalf("internal error expanding template for %s: %v", path, err)
+		logger.Fatalf("internal error expanding template for %s: %v", path, err)
 	}
 	if false { // debugging
 		fmt.Fprintln(os.Stderr, buf.String())
@@ -161,7 +161,7 @@ func (prog *Program) CreateTestMainPackage(pkg *Package) *Package {
 	// Parse and type-check the testmain package.
 	f, err := parser.ParseFile(prog.Fset, path+".go", &buf, parser.Mode(0))
 	if err != nil {
-		log.Fatalf("internal error parsing %s: %v", path, err)
+		logger.Fatalf("internal error parsing %s: %v", path, err)
 	}
 	conf := types.Config{
 		DisableUnusedImportCheck: true,
@@ -178,7 +178,7 @@ func (prog *Program) CreateTestMainPackage(pkg *Package) *Package {
 	}
 	testmainPkg, err := conf.Check(path, prog.Fset, files, info)
 	if err != nil {
-		log.Fatalf("internal error type-checking %s: %v", path, err)
+		logger.Fatalf("internal error type-checking %s: %v", path, err)
 	}
 
 	// Create and build SSA code.

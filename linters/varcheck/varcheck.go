@@ -19,13 +19,16 @@ import (
 	"go/ast"
 	"go/build"
 	"go/token"
-	"log"
 	"sort"
 	"strings"
 
 	"go/types"
+
+	"github.com/hellobchain/wswlog/wlogging"
 	"golang.org/x/tools/go/loader"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 var (
 	reportExported = flag.Bool("e", false, "Report exported variables and constants")
@@ -128,15 +131,15 @@ func VarCheck(projectPath string) []string {
 	}
 	rest, err := loadcfg.FromArgs(importPaths, true)
 	if err != nil {
-		log.Fatalf("could not parse arguments: %s", err)
+		logger.Fatalf("could not parse arguments: %s", err)
 	}
 	if len(rest) > 0 {
-		log.Fatalf("unhandled extra arguments: %v", rest)
+		logger.Fatalf("unhandled extra arguments: %v", rest)
 	}
 
 	program, err := loadcfg.Load()
 	if err != nil {
-		log.Fatalf("could not type check: %s", err)
+		logger.Fatalf("could not type check: %s", err)
 	}
 
 	uses := make(map[object]int)

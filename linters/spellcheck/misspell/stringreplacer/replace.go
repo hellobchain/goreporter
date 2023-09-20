@@ -6,9 +6,12 @@ package stringreplacer
 
 import (
 	"io"
-	"log"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // Replacer replaces a list of strings with replacements.
 // It is safe for concurrent use by multiple goroutines.
@@ -26,7 +29,7 @@ type replacer interface {
 // Replacements are performed in order, without overlapping matches.
 func NewReplacer(oldnew ...string) *Replacer {
 	if len(oldnew)%2 == 1 {
-		log.Fatal("strings.NewReplacer: odd argument count")
+		logger.Fatal("strings.NewReplacer: odd argument count")
 	}
 
 	allNewBytes := true

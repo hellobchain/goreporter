@@ -1,11 +1,13 @@
 package interfacer
 
 import (
-	"log"
-	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 func Interfacer(packagesPath map[string]string) []string {
 	packages := make([]string, 0)
@@ -18,8 +20,7 @@ func Interfacer(packagesPath map[string]string) []string {
 	}
 	lines, err := CheckArgs(packages)
 	if err != nil {
-		l := log.New(os.Stderr, "", log.LstdFlags)
-		l.Println(err)
+		logger.Error(err)
 	}
 	return lines
 }
@@ -28,7 +29,7 @@ func Interfacer(packagesPath map[string]string) []string {
 func absPath(path string) string {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return path
 	}
 	return absPath

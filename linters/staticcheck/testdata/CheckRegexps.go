@@ -1,9 +1,12 @@
 package pkg
 
 import (
-	"log"
 	"regexp"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 const c1 = `[`
 const c2 = `abc`
@@ -18,6 +21,6 @@ func fn() {
 		panic(err)
 	}
 	if re2.MatchString("foo(") {
-		log.Println("of course 'foo(' matches 'foo('")
+		logger.Info("of course 'foo(' matches 'foo('")
 	}
 }

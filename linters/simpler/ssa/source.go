@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build go1.5
 // +build go1.5
 
 package ssa
@@ -16,8 +17,11 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"log"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // EnclosingFunction returns the function that contains the syntax
 // node denoted by path.
@@ -127,7 +131,7 @@ func findNamedFunc(pkg *Package, pos token.Pos) *Function {
 				obj := mset.At(i).Obj().(*types.Func)
 				if obj.Pos() == pos {
 					if pkg.values[obj] == nil {
-						log.Println(obj)
+						logger.Info(obj)
 					}
 					return pkg.values[obj].(*Function)
 				}

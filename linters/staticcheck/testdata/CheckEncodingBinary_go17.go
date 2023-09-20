@@ -3,10 +3,13 @@ package pkg
 import (
 	"encoding/binary"
 	"io/ioutil"
-	"log"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 func fn() {
 	var x bool
-	log.Println(binary.Write(ioutil.Discard, binary.LittleEndian, x)) // MATCH "cannot be used with binary.Write"
+	logger.Info(binary.Write(ioutil.Discard, binary.LittleEndian, x)) // MATCH "cannot be used with binary.Write"
 }

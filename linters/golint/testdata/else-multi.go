@@ -4,15 +4,19 @@
 // Package pkg ...
 package pkg
 
-import "log"
+import (
+	"github.com/hellobchain/wswlog/wlogging"
+)
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 func f(x int) bool {
 	if x == 0 {
-		log.Print("x is zero")
+		logger.Info("x is zero")
 	} else if x > 0 {
 		return true
 	} else {
-		log.Printf("non-positive x: %d", x)
+		logger.Infof("non-positive x: %d", x)
 	}
 	return false
 }

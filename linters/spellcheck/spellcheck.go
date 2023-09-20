@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,14 +12,18 @@ import (
 	"time"
 
 	"github.com/hellobchain/goreporter/linters/spellcheck/misspell"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 var (
 	defaultWrite *template.Template
 	defaultRead  *template.Template
 
-	stdout     *log.Logger
-	debug      *log.Logger
+	stdout     *wlogging.WswLogger
+	debug      *wlogging.WswLogger
 	spellCheck []string
 )
 
@@ -45,14 +48,14 @@ func worker(writeit bool, r *misspell.Replacer, mode string, files <-chan string
 	for filename := range files {
 		orig, err := misspell.ReadTextFile(filename)
 		if err != nil {
-			log.Println(err)
+			logger.Error(err)
 			continue
 		}
 		if len(orig) == 0 {
 			continue
 		}
 
-		debug.Printf("Processing %s", filename)
+		debug.Infof("Processing %s", filename)
 
 		updated, changes := r.Replace(orig)
 
@@ -104,9 +107,9 @@ func SpellCheck(projectPath, except string) []string {
 	)
 
 	if debugFlag {
-		debug = log.New(os.Stderr, "DEBUG ", 0)
+		debug = wlogging.MustGetLogger("DEBUG")
 	} else {
-		debug = log.New(ioutil.Discard, "", 0)
+		debug = wlogging.MustGetLogger("INFO")
 	}
 
 	r := misspell.Replacer{
@@ -124,9 +127,9 @@ func SpellCheck(projectPath, except string) []string {
 	case "UK", "GB":
 		r.AddRuleList(misspell.DictBritish)
 	case "NZ", "AU", "CA":
-		log.Fatalf("Help wanted.  https://github.com/client9/misspell/issues/6")
+		logger.Fatalf("Help wanted.  https://github.com/client9/misspell/issues/6")
 	default:
-		log.Fatalf("Unknow locale: %q", locale)
+		logger.Fatalf("Unknow locale: %q", locale)
 	}
 
 	//
@@ -145,7 +148,7 @@ func SpellCheck(projectPath, except string) []string {
 	case "go":
 	case "text":
 	default:
-		log.Fatalf("Mode must be one of auto=guess, go=golang source, text=plain or markdown-like text")
+		logger.Fatalf("Mode must be one of auto=guess, go=golang source, text=plain or markdown-like text")
 	}
 
 	//
@@ -156,16 +159,16 @@ func SpellCheck(projectPath, except string) []string {
 		tmpl := template.Must(template.New("csv").Parse(csvTmpl))
 		defaultWrite = tmpl
 		defaultRead = tmpl
-		stdout.Println(csvHeader)
+		stdout.Info(csvHeader)
 	case format == "sqlite" || format == "sqlite3":
 		tmpl := template.Must(template.New("sqlite3").Parse(sqliteTmpl))
 		defaultWrite = tmpl
 		defaultRead = tmpl
-		stdout.Println(sqliteHeader)
+		stdout.Info(sqliteHeader)
 	case len(format) > 0:
 		t, err := template.New("custom").Parse(format)
 		if err != nil {
-			log.Fatalf("Unable to compile log format: %s", err)
+			logger.Fatalf("Unable to compile log format: %s", err)
 		}
 		defaultWrite = t
 		defaultRead = t
@@ -179,27 +182,27 @@ func SpellCheck(projectPath, except string) []string {
 	// we see it so it doesn't use a prefix or include a time stamp.
 	switch {
 	case quietFlag || outFlag == "/dev/null":
-		stdout = log.New(ioutil.Discard, "", 0)
+		stdout = wlogging.MustGetLogger("dev")
 	case outFlag == "/dev/stderr" || outFlag == "stderr":
-		stdout = log.New(os.Stderr, "", 0)
+		stdout = wlogging.MustGetLogger("stderr")
 	case outFlag == "/dev/stdout" || outFlag == "stdout":
-		stdout = log.New(os.Stdout, "", 0)
+		stdout = wlogging.MustGetLogger("stdout")
 	case outFlag == "" || outFlag == "-":
-		stdout = log.New(os.Stdout, "", 0)
+		stdout = wlogging.MustGetLogger("")
 	default:
 		fo, err := os.Create(outFlag)
 		if err != nil {
-			log.Fatalf("unable to create outfile %q: %s", outFlag, err)
+			logger.Fatalf("unable to create outfile %q: %s", outFlag, err)
 		}
 		defer fo.Close()
-		stdout = log.New(fo, "", 0)
+		stdout = wlogging.MustGetLogger("INFO")
 	}
 
 	//
 	// Number of Workers / CPU to use
 	//
 	if workers < 0 {
-		log.Fatalf("-j must >= 0")
+		logger.Fatalf("-j must >= 0")
 	}
 	if workers == 0 {
 		workers = runtime.NumCPU()
@@ -215,7 +218,7 @@ func SpellCheck(projectPath, except string) []string {
 	r.Compile()
 
 	args := []string{projectPath}
-	debug.Printf("initialization complete in %v", time.Since(t))
+	debug.Infof("initialization complete in %v", time.Since(t))
 
 	// stdin/stdout
 	if len(args) == 0 {

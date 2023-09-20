@@ -31,13 +31,16 @@ package gotool
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // This file contains code from the Go distribution.
 
@@ -252,7 +255,7 @@ func (c *Context) matchPackagesInFS(pattern string) []string {
 		// See golang.org/issue/11407.
 		if p, err := c.BuildContext.ImportDir(path, 0); err != nil && shouldIgnoreImport(p) {
 			if _, noGo := err.(*build.NoGoError); !noGo {
-				log.Print(err)
+				logger.Error(err)
 			}
 			return nil
 		}

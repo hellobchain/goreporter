@@ -16,12 +16,15 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"log"
 	"math"
 	"math/big"
 	"sort"
 	"strings"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 // If debugFormat is set, each integer and string value is preceded by a marker
 // and position information in the encoding. This mechanism permits an importer
@@ -107,7 +110,7 @@ func BExportData(fset *token.FileSet, pkg *types.Package) []byte {
 		p.typIndex[typ] = index
 	}
 	if len(p.typIndex) != len(predeclared) {
-		log.Fatalf("gcimporter: duplicate entries in type map?")
+		logger.Fatalf("gcimporter: duplicate entries in type map?")
 	}
 
 	// write package data
@@ -150,7 +153,7 @@ func BExportData(fset *token.FileSet, pkg *types.Package) []byte {
 
 func (p *exporter) pkg(pkg *types.Package, emptypath bool) {
 	if pkg == nil {
-		log.Fatalf("gcimporter: unexpected nil pkg")
+		logger.Fatalf("gcimporter: unexpected nil pkg")
 	}
 
 	// if we saw the package before, write its index (>= 0)
@@ -209,7 +212,7 @@ func (p *exporter) obj(obj types.Object) {
 		p.paramList(sig.Results(), false)
 
 	default:
-		log.Fatalf("gcimporter: unexpected object %v (%T)", obj, obj)
+		logger.Fatalf("gcimporter: unexpected object %v (%T)", obj, obj)
 	}
 }
 
@@ -273,7 +276,7 @@ func (p *exporter) qualifiedName(obj types.Object) {
 
 func (p *exporter) typ(t types.Type) {
 	if t == nil {
-		log.Fatalf("gcimporter: nil type")
+		logger.Fatalf("gcimporter: nil type")
 	}
 
 	// Possible optimization: Anonymous pointer types *T where
@@ -356,7 +359,7 @@ func (p *exporter) typ(t types.Type) {
 		p.typ(t.Elem())
 
 	default:
-		log.Fatalf("gcimporter: unexpected type %T: %s", t, t)
+		logger.Fatalf("gcimporter: unexpected type %T: %s", t, t)
 	}
 }
 
@@ -422,7 +425,7 @@ func (p *exporter) fieldList(t *types.Struct) {
 
 func (p *exporter) field(f *types.Var) {
 	if !f.IsField() {
-		log.Fatalf("gcimporter: field expected")
+		logger.Fatalf("gcimporter: field expected")
 	}
 
 	p.pos(f)
@@ -452,7 +455,7 @@ func (p *exporter) iface(t *types.Interface) {
 func (p *exporter) method(m *types.Func) {
 	sig := m.Type().(*types.Signature)
 	if sig.Recv() == nil {
-		log.Fatalf("gcimporter: method expected")
+		logger.Fatalf("gcimporter: method expected")
 	}
 
 	p.pos(m)
@@ -575,13 +578,13 @@ func (p *exporter) value(x constant.Value) {
 		p.tag(unknownTag)
 
 	default:
-		log.Fatalf("gcimporter: unexpected value %v (%T)", x, x)
+		logger.Fatalf("gcimporter: unexpected value %v (%T)", x, x)
 	}
 }
 
 func (p *exporter) float(x constant.Value) {
 	if x.Kind() != constant.Float {
-		log.Fatalf("gcimporter: unexpected constant %v, want float", x)
+		logger.Fatalf("gcimporter: unexpected constant %v, want float", x)
 	}
 	// extract sign (there is no -0)
 	sign := constant.Sign(x)
@@ -616,7 +619,7 @@ func (p *exporter) float(x constant.Value) {
 	m.SetMantExp(&m, int(m.MinPrec()))
 	mant, acc := m.Int(nil)
 	if acc != big.Exact {
-		log.Fatalf("gcimporter: internal error")
+		logger.Fatalf("gcimporter: internal error")
 	}
 
 	p.int(sign)
@@ -653,7 +656,7 @@ func (p *exporter) bool(b bool) bool {
 
 func (p *exporter) index(marker byte, index int) {
 	if index < 0 {
-		log.Fatalf("gcimporter: invalid index < 0")
+		logger.Fatalf("gcimporter: invalid index < 0")
 	}
 	if debugFormat {
 		p.marker('t')
@@ -666,7 +669,7 @@ func (p *exporter) index(marker byte, index int) {
 
 func (p *exporter) tag(tag int) {
 	if tag >= 0 {
-		log.Fatalf("gcimporter: invalid tag >= 0")
+		logger.Fatalf("gcimporter: invalid tag >= 0")
 	}
 	if debugFormat {
 		p.marker('t')

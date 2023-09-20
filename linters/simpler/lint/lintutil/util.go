@@ -14,7 +14,6 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -24,7 +23,11 @@ import (
 
 	"github.com/kisielk/gotool"
 	"golang.org/x/tools/go/loader"
+
+	"github.com/hellobchain/wswlog/wlogging"
 )
+
+var logger = wlogging.MustGetLoggerWithoutName()
 
 func usage(name string, flags *flag.FlagSet) func() {
 	return func() {
@@ -143,8 +146,7 @@ func ProcessFlagSet(c lint.Checker, fs *flag.FlagSet) (results []string) {
 		GoVersion: version,
 	})
 	if err != nil {
-		l := log.New(os.Stderr, "", log.LstdFlags)
-		l.Println(err)
+		logger.Error(err)
 	}
 
 	for _, p := range ps {
