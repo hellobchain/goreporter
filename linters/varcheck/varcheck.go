@@ -76,7 +76,8 @@ func (v *visitor) decl(obj types.Object) {
 
 func (v *visitor) use(obj types.Object) {
 	key := getKey(obj)
-	if _, ok := v.uses[key]; ok {
+	_, ok := v.uses[key]
+	if ok {
 		v.uses[key]++
 	} else {
 		v.uses[key] = 1
